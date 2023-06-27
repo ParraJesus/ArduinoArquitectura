@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "author": "Jeferson Castaño",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-breadboard", "id": "bb1", "top": 265.8, "left": -160.4, "attrs": {} },
+    { "type": "wokwi-arduino-mega", "id": "mega", "top": -1.52, "left": 77.87, "attrs": {} },
+    { "type": "wokwi-lcd1602", "id": "lcd1", "top": -236.96, "left": 230.19, "attrs": {} },
+    {
+      "type": "wokwi-membrane-keypad",
+      "id": "keypad1",
+      "top": -181.55,
+      "left": 659.92,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-dht22",
+      "id": "dht1",
+      "top": -26.14,
+      "left": -16.29,
+      "attrs": { "temperature": "-1.3" }
+    },
+    { "type": "wokwi-rgb-led", "id": "rgb1", "top": 224.13, "left": 507.79, "attrs": {} },
+    {
+      "type": "wokwi-buzzer",
+      "id": "bz1",
+      "top": 99.41,
+      "left": -102.56,
+      "attrs": { "volume": "0.1" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn1",
+      "top": -35.01,
+      "left": 557.05,
+      "attrs": { "color": "green", "bounce": "0" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn2",
+      "top": -93.41,
+      "left": 557.59,
+      "attrs": { "color": "blue" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn3",
+      "top": -146.97,
+      "left": 557.59,
+      "attrs": { "color": "red" }
+    }
+  ],
+  "connections": [
+    [ "mega:5V", "bb1:tp.1", "red", [ "v34.06", "h-261.11" ] ],
+    [ "mega:GND.2", "bb1:tn.2", "black", [ "v39.95", "h-263.35" ] ],
+    [ "bz1:1", "bb1:tn.5", "black", [ "v0" ] ],
+    [
+      "bz1:2",
+      "mega:8",
+      "green",
+      [ "v7.42", "h134.3", "v-174.05", "h12.98", "v-34.35", "h174.05" ]
+    ],
+    [
+      "dht1:SDA",
+      "mega:3",
+      "violet",
+      [ "v22.68", "h50.36", "v-103.06", "h13.74", "v-35.88", "h233.66", "v34", "h0.4" ]
+    ],
+    [ "dht1:VCC", "bb1:tp.7", "red", [ "v80.7", "h-35.56" ] ],
+    [ "dht1:GND", "bb1:tn.8", "black", [ "v89.86", "h-65.12" ] ],
+    [ "rgb1:R", "mega:49", "red", [ "v35.68", "h79.71", "v-1.53" ] ],
+    [ "rgb1:G", "mega:51", "green", [ "v27.29", "h53.42", "v-2.29" ] ],
+    [ "rgb1:B", "mega:53", "blue", [ "v19.65", "h35.72", "v-137.41" ] ],
+    [ "bb1:tp.3", "bb1:5t.a", "red", [ "v0" ] ],
+    [ "bb1:tn.4", "bb1:6t.a", "black", [ "v0" ] ],
+    [ "lcd1:RS", "mega:23", "#8f4814", [ "v51.73", "h198.58", "v72.51" ] ],
+    [ "lcd1:E", "mega:25", "red", [ "v45.09", "h185.72", "v81.7" ] ],
+    [ "lcd1:D4", "mega:27", "orange", [ "v36.92", "h144.87", "v98.55" ] ],
+    [ "lcd1:D5", "mega:29", "gold", [ "v30.28", "h143.03", "v117.44" ] ],
+    [ "lcd1:D6", "mega:31", "green", [ "v23.14", "h141.7", "v133.27" ] ],
+    [ "lcd1:D7", "mega:33", "blue", [ "v17.52", "h137.81", "v148.59" ] ],
+    [ "lcd1:VSS", "bb1:6t.b", "black", [ "v17.6", "h-517.96", "v404.27" ] ],
+    [ "lcd1:VDD", "bb1:5t.c", "red", [ "v27.54", "h-514.47", "v392.04", "h71.07", "v24.45" ] ],
+    [ "lcd1:RW", "bb1:6t.d", "black", [ "v40.53", "h-567.92", "v399.68" ] ],
+    [ "lcd1:K", "bb1:6t.e", "black", [ "v11.49", "h-681.83", "v460.06" ] ],
+    [ "lcd1:A", "bb1:5t.d", "red", [ "v64.99", "h-622.65", "v385.93" ] ],
+    [ "keypad1:C4", "mega:A0", "cyan", [ "v89.76", "h4.44" ] ],
+    [ "keypad1:C3", "mega:A1", "yellow", [ "v79.06", "h-535.28" ] ],
+    [ "keypad1:C2", "mega:A2", "magenta", [ "v69.89", "h-514.83" ] ],
+    [ "keypad1:C1", "mega:A3", "white", [ "v62.25", "h-496.93" ] ],
+    [ "keypad1:R4", "mega:47", "green", [ "v53.08", "h-194.73", "v-65.72" ] ],
+    [ "keypad1:R3", "mega:45", "gray", [ "v42.38", "h-174.53", "v-64.19" ] ],
+    [ "keypad1:R2", "mega:43", "blue", [ "v31.68", "h-158.15", "v-63.43" ] ],
+    [ "keypad1:R1", "mega:41", "gold", [ "v20.98", "h-139.75", "v-67.25" ] ],
+    [ "rgb1:COM", "bb1:tp.50", "red", [ "v0" ] ],
+    [ "mega:18", "btn1:1.l", "green", [ "v0" ] ],
+    [ "btn1:2.l", "bb1:tn.48", "green", [ "h-47.71", "v250.87", "h-86.85" ] ],
+    [ "mega:19", "btn2:1.l", "blue", [ "v-21.57", "h141.62", "v-0.82" ] ],
+    [ "mega:20", "btn3:1.l", "red", [ "v-41.61", "h138.67", "v-102.63" ] ],
+    [ "btn3:2.l", "bb1:tn.50", "black", [ "v21.71", "h-56.05", "v381.36" ] ],
+    [ "btn2:2.l", "bb1:tn.49", "black", [ "h-82.19", "v251.18" ] ]
+  ],
+  "dependencies": {}
+}
