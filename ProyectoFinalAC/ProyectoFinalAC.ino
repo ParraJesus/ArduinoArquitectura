@@ -91,6 +91,9 @@ StateMachine stateMachine(5, 10);
 // Almacena la ultima entrada
 Input input;
 
+// Conteo para bloquear sistema por temperatura maxima
+int blockSystem = 0;
+
 /*F**************************************************************************
 * NAME: setupStateMachine
 *----------------------------------------------------------------------------
@@ -143,7 +146,7 @@ void setupStateMachine()
 AsyncTask aTReadPV(2500, false, changeInpTHLtoPV);
 AsyncTask aTReadTHL(1500, false, changeInpPVtoTHL);
 AsyncTask aTMovePV(20000, false, changeInpBlocktoPV);
-AsyncTask aTCheckTemp(5000, true, verifyMaxTemp);
+AsyncTask aTCheckTemp(5000, false, changeInpAltoTHL);
 AsyncTask aTBlockAlarm(20000, false, changeInpAltoBlock);
 
 
@@ -164,6 +167,7 @@ void loop()
 	input = static_cast<Input>(readInput());
 	// Update State Machine
 	stateMachine.Update();
+  readLeaving();
 }
 
 /*F**************************************************************************
@@ -229,11 +233,15 @@ int stateLogin(){
 *****************************************************************************/
 int stateMTHL(){
   aTReadPV.Update();
+  aTBlockAlarm.Update();
+  updateTHL();
   if(isTempMax()){
     aTReadPV.Stop();
+    finishTaskSensor();
     return Input::temperature;
   }
   else{
+    aTBlockAlarm.Stop();
     return Input::unknown;
   }
 }
@@ -285,9 +293,14 @@ int stateBlocked(){
 int stateMPV()
 {
   aTReadTHL.Update();
-  readLeaving();
   if(getReset()){
     aTReadTHL.Stop();
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Saliendo del");
+    lcd.setCursor(7,1);
+    lcd.print("sistema...");
+    delay(2000);
     return Input::reset;
   }
   if(getEventDetected()){
@@ -352,8 +365,11 @@ void inputMTHL(){
 void inputAlarm(){
   Serial.println("state alarm");
   aTCheckTemp.Start();
-  aTBlockAlarm.Start();
+  if (blockSystem == 0){
+      aTBlockAlarm.Start();
+  }
   startBuzzer();
+  blockSystem++;
 }
 /*F**************************************************************************
 * NAME: inputBlocked
@@ -443,7 +459,9 @@ void outPutBlocked(){
 * 
 *****************************************************************************/
 void changeInpTHLtoPV(){
+  blockSystem = 0;
   input = static_cast<Input>(Input::timeout);
+  finishTaskSensor();
   stateMachine.Update();
 }
 /*F**************************************************************************
@@ -490,16 +508,10 @@ void changeInpBlocktoPV(){
 * NOTE:
 * 
 *****************************************************************************/
-void verifyMaxTemp(){
-  readTHL();
-  if(isTempMax()){
-      startBuzzer();
-  }else{
+void changeInpAltoTHL(){
     input = static_cast<Input>(Input::timeout);
     stateMachine.Update();
-    aTBlockAlarm.Stop();
-    aTCheckTemp.Stop();
-  }
+
 }
 /*F**************************************************************************
 * NAME: changeInpAltoBlock
@@ -514,6 +526,7 @@ void verifyMaxTemp(){
 * 
 *****************************************************************************/
 void changeInpAltoBlock(){
+  blockSystem = 0;
   input = static_cast<Input>(Input::temperature);
   stateMachine.Update();
 }

@@ -1,10 +1,10 @@
 /*!
-\file   SensorTHL.ino
+\file   SensorPV.ino
 \date   2023-06-27
 \author David Santiago Giron Muñoz <davidgiron@unicauca.edu.co>
         Jeferson Castano Ossa <jcastanoossa@unicauca.edu.co>
         Jesus Gabriel Parra Dugarte <jgparra@unicauca.edu.co>
-\brief  Control de medida de los sensores de temperatura, humedad y luz.
+\brief  Control de los sensores de puertas y ventanas.
 
 \par Copyright
 Information contained herein is proprietary to and constitutes valuable
@@ -19,151 +19,129 @@ The copyright notices above do not evidence any actual or
 intended publication of this material.
 ******************************************************************************
 */
-
-/********************************************//**
- *  DHT setup
- ***********************************************/
-DHTStable DHT;
-
-#define DEBUG(a) Serial.print(millis()); Serial.print(": "); Serial.println(a);
-
-void readTemperature();
-void printData();
-void readPhotoRe();
-
-
-/********************************************//**
- *  Async Task
- ***********************************************/
-AsyncTask asyncTaskReadTemperature(500, true, readTemperature);
-AsyncTask asyncTaskReadPhotoR(500, true, readPhotoRe);
-
-/********************************************//**
- *  Values
- ***********************************************/
-int light;
-float temper;
-float humidity;
-bool maxTemperature = false;
-
+bool resetSys = false;
+volatile int eventDetected = LOW;
 
 /*F**************************************************************************
-* NAME: readTHL
+* NAME: setupPV
 *----------------------------------------------------------------------------
 * PARAMS:   none
 * return:   none
 *----------------------------------------------------------------------------
 * PURPOSE:
-* Leer los valores de temperatura, humedad y luz
+* Configurar pines e interrupcciones para los sensores de puertas y ventanas
 *----------------------------------------------------------------------------
 * NOTE:
 * 
 *****************************************************************************/
-void readTHL(){
-  readTemperature();
-  readPhotoRe();
+void setupPV()
+{
+  pinMode(hallPin,INPUT_PULLUP); //initialize the hall as an input
+  pinMode(trackingPin,INPUT_PULLUP); //initialize the tracking as an input
+  pinMode(metalTouchPin,INPUT_PULLUP); //initialize the metalTouch as an input
+  activateInts();
+  resetSys = false;
+  eventDetected = LOW;
 }
 /*F**************************************************************************
-* NAME: readTemperature
+* NAME: readLeaving
 *----------------------------------------------------------------------------
 * PARAMS:   none
 * return:   none
 *----------------------------------------------------------------------------
 * PURPOSE:
-* Obtiene los valores de temperatura y humedad
+* Identificar caracter de salida
 *----------------------------------------------------------------------------
 * NOTE:
 * 
 *****************************************************************************/
-void readTemperature()
+void readLeaving()
 {
-  // READ DATA
-  int chk = DHT.read11(DHT11_PIN);
-  temper = DHT.getTemperature();
-  humidity = DHT.getHumidity();
-  printData();
-  if(temper >= 15.0f){
-    maxTemperature = true;
-  }else{
-    maxTemperature = false;
+    char key = keypad.getKey();
+    if(key =='*') {
+    resetSys = true;
   }
-  printData();
 }
 /*F**************************************************************************
-* NAME: updateTHL
+* NAME: resetPV
 *----------------------------------------------------------------------------
 * PARAMS:   none
 * return:   none
 *----------------------------------------------------------------------------
 * PURPOSE:
-* Actualizar tareas asincronicas 
+* Reiniciar deteccion de puertas y ventanas
 *----------------------------------------------------------------------------
 * NOTE:
 * 
 *****************************************************************************/
-void updateTHL(){
-  asyncTaskReadTemperature.Update();
-  asyncTaskReadPhotoR.Update();
-}
-/*F**************************************************************************
-* NAME: finishTaskSensor
-*----------------------------------------------------------------------------
-* PARAMS:   none
-* return:   none
-*----------------------------------------------------------------------------
-* PURPOSE:
-* Terminar tareas asincronicas 
-*----------------------------------------------------------------------------
-* NOTE:
-* 
-*****************************************************************************/
-void finishTaskSensor()
+void resetPV()
 {
-  asyncTaskReadTemperature.Stop();
-  asyncTaskReadPhotoR.Stop();
+  eventDetected = LOW;
 }
 /*F**************************************************************************
-* NAME: readPhotoRe
+* NAME: activateInts
 *----------------------------------------------------------------------------
 * PARAMS:   none
 * return:   none
 *----------------------------------------------------------------------------
 * PURPOSE:
-* Obtiene el valor del fotoresistor
+* Activar las interrupciones para la deteccion de puertas y ventanas
 *----------------------------------------------------------------------------
 * NOTE:
 * 
 *****************************************************************************/
-void readPhotoRe()
+void activateInts()
 {
-  light = analogRead(photocellPin);
-  printData();
+  attachInterrupt(digitalPinToInterrupt(hallPin), setDetection, FALLING);
+  attachInterrupt(digitalPinToInterrupt(trackingPin), setDetection, FALLING);
+  attachInterrupt(digitalPinToInterrupt(metalTouchPin), setDetection, RISING);
+  eventDetected = LOW;
 }
 /*F**************************************************************************
-* NAME: printData
+* NAME: setDetection
 *----------------------------------------------------------------------------
 * PARAMS:   none
 * return:   none
 *----------------------------------------------------------------------------
 * PURPOSE:
-* Imprime los valores de temperatura, humedad y luz
+* Activar evento
 *----------------------------------------------------------------------------
 * NOTE:
 * 
 *****************************************************************************/
-void printData()
+void setDetection()
 {
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print("H:");
-  lcd.print(humidity);
-  lcd.setCursor(8,0);
-  lcd.print(" T:");
-  lcd.print(temper);
-  lcd.setCursor(0,1);
-  lcd.print(" L:");
-  lcd.print(light);
-} 
-bool isTempMax(){
-  return maxTemperature;
+  eventDetected = HIGH;
+}
+/*F**************************************************************************
+* NAME: getReset
+*----------------------------------------------------------------------------
+* PARAMS:   none
+* return:   Verdadero: Reiniciar sistema | Falso: No reiniciar sistema
+*----------------------------------------------------------------------------
+* PURPOSE:
+* Identificar si se debe reiniciar el sistema
+*----------------------------------------------------------------------------
+* NOTE:
+* 
+*****************************************************************************/
+bool getReset()
+{
+  return resetSys;
+}
+/*F**************************************************************************
+* NAME: getEventDetected
+*----------------------------------------------------------------------------
+* PARAMS:   none
+* return:   Verdadero: Evento detectado | Falso: Evento no detectado
+*----------------------------------------------------------------------------
+* PURPOSE:
+* Identificar si ha ocurrido un evento
+*----------------------------------------------------------------------------
+* NOTE:
+* 
+*****************************************************************************/
+bool getEventDetected()
+{
+  return eventDetected==HIGH;
 }

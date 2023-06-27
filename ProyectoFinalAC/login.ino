@@ -147,7 +147,7 @@ bool checkPass(String pass, String check) {
     lcd.clear();
     lcd.print("Contrasenia:");
     lcd.setCursor(0, 1);
-    color(255, 102, 0);
+    color(255,0,255);
   }
   if (tries <= 0) {
     lcd.clear();
